@@ -6,6 +6,8 @@
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?logo=openapiinitiative)](https://www.openapis.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-Required-339933?logo=node.js)](https://nodejs.org/)
 
+<!-- https://ebasso.net/wiki/index.php?title=IBM_Maximo:_Dicas_de_APIs_Rest -->
+
 This repository provides tools and documentation for integrating IBM Maximo with enterprise applications using IBM webMethods Hybrid Integration Platform (IWHI).
 
 ## Overview
@@ -51,6 +53,9 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 ### Repository Structure
 
 ```text
+├── images/                 # screen captures for documentation
+├── logo/                   # logo for Maximo connector
+├── maximo/                 # OpenAPI specification processing tools
 ├── api/                    # OpenAPI specification processing tools
 │   ├── Makefile           # Build pipeline for API spec
 │   ├── filter-by-path.js  # Filter relevant API endpoints
@@ -84,6 +89,10 @@ https://<sub_domain>.<mas_domain>/
    ```text
    https://mas.manage.<mas_domain>/maximo/api/oas
    ```
+
+> [!TIP]
+> API documentation can be consulted at:
+> `https://mas.manage.<mas_domain>/maximo/oas3/api.html`
 
 1. Save it in the `api` directory as `oas.json` (or use the one already saved)
 
@@ -195,3 +204,34 @@ For issues related to:
 ## Micro Service Runtime (MSR)
 
 The workflow simulates an on-prem service by using an Integration MSR accessing a database.
+
+##
+
+In AppConnect:
+
+```text
+IBM Maximo Asset Management is an enterprise asset management solution that enterprises can use for asset management, procurement and materials management, service management, work management, and contract management.
+More info
+
+Assets (mxapiasset)
+Assets (mxasset)
+Companies (mxapivendor)
+Contracts (mxapicontract)
+Crafts (mxapicraft)
+Labors (mxapilabor)
+Locations (mxapilocations)
+Person groups (mxapipersongroup)
+Person users (mxapiperuser)
+Purchase orders (mxapipo)
+Service addresses (mxapiseraddress)
+Service requests (mxapisr)
+Create service request
+Retrieve service requests
+Update service request
+Update or create service request
+Delete service request
+Download service requests as CSV
+Replace or create service request
+Replace service request
+Work orders (mxapiwo)
+```
