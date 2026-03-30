@@ -1,0 +1,6 @@
+plugins:
+  - './filter-by-path.js'
+decorators:
+  maximo-api-filter/filter-mxapi-paths: on
+extends:
+  - minimal
