@@ -139,18 +139,59 @@ For issues related to:
 
 ## ServiceNow
 
+- Go to: `All > System Web Services > Outbound > REST Message`
+
+- Create a REST Message (Endpoint):
+
+  ![Create Business Rule](images/servicenow-business-create-rest-endpoint.png)
+
+  - Name: `Call IWHI`
+  - Endpoint: `https://<your-iwhi-instance>/runflow/resume/a10/${execution_id}`
+  - HTTP Request: add Header:
+    - `X-INSTANCE-API-KEY`: `<your iwhi API key>`
+
+- Create a HTTP Method (Message): in the same window:
+
+  ![Create Business Rule](images/servicenow-business-create-rest-message.png)
+
+  - Name: `postWebHook`
+  - HTTP Method: `POST`
+  - HTTP Request
+    - Headers:
+      - `Content-Type`: `application/json`
+    - Content:
+
+      ```json
+      {
+      "event": "incident.updated",
+      "number": "${number}",
+      "short_description": "${short_description}",
+      "correlation_id": "${correlation_id}"
+      }
+      ```
+
+> [!NOTE]
+> The variables: `execution_id`, `number`, `short_description` and `correlation_id` will be replaced with actual values in the script in the business rule.
+
 - Go to: `All > System Definitions > Business Rules`
 
 - Create a business Rule:
 
   ![Create Business Rule](images/servicenow-business-create-rule.png)
-  - Parameters:
-    - **Table**: `Incident`
-    - **Active**: `Yes`
-    - **Advanced**: `Yes`
-  - When to Run:
+  - Name: `IWHI Change`
+  - **Table**: `Incident`
+  - **Active**: `Yes`
+  - **Advanced**: `Yes`
+  - **When to Run**
     - **When**: `after`
     - **Update**: `Yes`
-  - Advanced:
-    - Turn on ES12 ode: `Yes`
-    - script: [here](src/service_now_business_rule.js)
+  - **Advanced**:
+    - Turn on ES12 mode: `Yes`
+    - Script: [javascript](src/service_now_business_rule.js)
+
+> [!NOTE]
+> The field: `current.correlation_id` is populated at incident creation time by IWHI Integration.
+
+## Micro Service Runtime (MSR)
+
+The workflow simulates an on-prem service by using an Integration MSR accessing a database.

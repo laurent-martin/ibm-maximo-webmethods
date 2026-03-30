@@ -1,6 +1,6 @@
 (function executeRule(current, previous /*null when async*/) {
     var r = new sn_ws.RESTMessageV2('Call IWHI', 'postWebhook');
-    // Optional: override values dynamically
+    // Replace variables in REST Message with values from current item (incident)
     r.setStringParameterNoEscape('number', current.number);
     r.setStringParameterNoEscape('short_description', current.short_description);
     r.setStringParameterNoEscape('correlation_id', current.correlation_id);

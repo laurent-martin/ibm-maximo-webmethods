@@ -11,6 +11,7 @@ all:
 	rm -f $(SPEC_BASE).tmp.json
 	node fix-oas.js $(SPEC_BASE).small.json
 	redocly lint $(SPEC_BASE).small.json
+	redocly bundle $(SPEC_BASE).small.json -o $(SPEC_BASE).small.yaml
 	ls -alh $(SPEC_BASE).small.json
 clean:
 	rm -rf build
