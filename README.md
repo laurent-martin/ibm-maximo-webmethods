@@ -142,6 +142,8 @@ For issues related to:
 - Go to: `All > System Definitions > Business Rules`
 
 - Create a business Rule:
+
+  ![Create Business Rule](images/servicenow-business-create-rule.png)
   - Parameters:
     - **Table**: `Incident`
     - **Active**: `Yes`
@@ -149,3 +151,6 @@ For issues related to:
   - When to Run:
     - **When**: `after`
     - **Update**: `Yes`
+  - Advanced:
+    - Turn on ES12 ode: `Yes`
+    - script: [here](src/service_now_business_rule.js)
