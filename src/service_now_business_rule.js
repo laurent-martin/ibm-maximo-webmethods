@@ -1,6 +1,13 @@
-(function executeRule(current, previous /*null when async*/) {
+// Called when an incident is modified
+// Context: ServiceNow Business Rule
+// Globals: `gs` : GlideSystem, `sn_ws` : ServiceNow Web Services
+// The first argument for `RESTMessageV2` is the RestMessage name.
+// The second is the name of the operation
+// @param current  modified value
+// @param previous value before modification (null when async)
+(function executeRule(current, previous) {
     var r = new sn_ws.RESTMessageV2('Call IWHI', 'postWebhook');
-    // Replace variables in REST Message with values from current item (incident)
+    // Set variable values in REST Message with values from current item (incident)
     r.setStringParameterNoEscape('number', current.number);
     r.setStringParameterNoEscape('short_description', current.short_description);
     r.setStringParameterNoEscape('correlation_id', current.correlation_id);

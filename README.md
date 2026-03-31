@@ -1,5 +1,13 @@
 # IBM Maximo - webMethods Integration
 
+<!--
+PANDOC_DEFAULTS_BEGIN
+metadata:
+  subtitle: "a scenario"
+  author: "Laurent Martin"
+PANDOC_DEFAULTS_END
+-->
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![IBM Maximo](https://img.shields.io/badge/IBM-Maximo-052FAD?logo=ibm)](https://www.ibm.com/products/maximo)
 [![webMethods](https://img.shields.io/badge/webMethods-Integration-00C7B7)](https://www.softwareag.com/en_corporate/platform/integration-apis/webmethods-integration.html)
@@ -8,7 +16,7 @@
 
 <!-- https://ebasso.net/wiki/index.php?title=IBM_Maximo:_Dicas_de_APIs_Rest -->
 
-This repository provides tools and documentation for integrating IBM Maximo with enterprise applications using IBM webMethods Hybrid Integration Platform (IWHI).
+This repository provides tools, patterns and documentation for integrating IBM Maximo with enterprise applications using IBM webMethods Hybrid Integration Platform (IWHI).
 
 ## Overview
 
@@ -44,11 +52,17 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 - **Inventory Management**: Update inventory across multiple platforms
 - **Compliance Reporting**: Aggregate data from Maximo for reporting systems
 
-### Prerequisites
+### Prerequisites for scenarios
 
 - IBM Maximo Application Suite (MAS) instance
 - IBM webMethods Hybrid Integration Platform access
 - Other enterprise applications, such as SAP, Oracle ERP, ServiceNow, Salesforce, etc.
+
+The Maximo instance main URL has the format ([Documentation]()):
+
+```text
+https://<sub_domain>.<mas_domain>/
+```
 
 ### Repository Structure
 
@@ -81,12 +95,6 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 
 ### Processing Maximo OpenAPI Specification
 
-The Maximo instance main URL has the format:
-
-```text
-https://<sub_domain>.<mas_domain>/
-```
-
 1. Get the OpenAPI specification for Maximo Manage from your Maximo instance:
 
    ```text
@@ -99,7 +107,7 @@ https://<sub_domain>.<mas_domain>/
 
 1. Save it in the `api` directory as `oas.json` (or use the one already saved)
 
-1. Run the build process:
+2. Run the build process:
 
    ```bash
    make
@@ -126,28 +134,6 @@ Configure Maximo to trigger webMethods workflows:
 - Set up Maximo automation scripts or object structures
 - Configure webhooks or message queues
 - Implement event handlers in webMethods to process Maximo events
-
-## Documentation
-
-- [API Processing Tools](api/README.md)
-- [Maximo REST API Documentation](https://www.ibm.com/docs/en/maximo-manage/continuous-delivery?topic=apis-maximo-rest-api)
-- [webMethods Integration Documentation](https://documentation.softwareag.com/)
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
-
-## Support
-
-For issues related to:
-
-- **Maximo**: Consult IBM Maximo documentation or support
-- **webMethods**: Consult IBM webMethods documentation or support
-- **This repository**: Open an issue on GitHub
 
 ## ServiceNow
 
@@ -208,9 +194,46 @@ For issues related to:
 
 The workflow simulates an on-prem service by using an Integration MSR accessing a database.
 
-##
+## About
 
-In AppConnect:
+### License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+### Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+## Documentation
+
+- [Maximo REST API Documentation](https://www.ibm.com/docs/en/maximo-manage/continuous-delivery?topic=apis-maximo-rest-api)
+- [webMethods Integration Documentation](https://documentation.softwareag.com/)
+
+### Support
+
+For issues related to:
+
+- **Maximo**: Consult IBM Maximo documentation or support
+- **webMethods**: Consult IBM webMethods documentation or support
+- **This repository**: Open an issue on GitHub
+
+## Annex: Demo environment "self-managed" on macOS
+
+For the self-managed part, we deploy containers on macOS.
+The following setup is used:
+
+```bash
+brew install podman 
+```
+
+```bash
+podman machine init --cpus 4 --memory 4096 --disk-size 50
+podman machine start
+```
+
+## Annex: Available Maximo Objects in IBM App Connect
+
+The following Maximo objects are available for integration in IBM App Connect:
 
 ```text
 IBM Maximo Asset Management is an enterprise asset management solution that enterprises can use for asset management, procurement and materials management, service management, work management, and contract management.
