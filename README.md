@@ -53,18 +53,21 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 ### Repository Structure
 
 ```text
-├── images/                 # screen captures for documentation
-├── logo/                   # logo for Maximo connector
+├── images/                 # Screen captures for documentation
+├── logo/                   # Logo for Maximo connector
 ├── maximo/                 # OpenAPI specification processing tools
-├── api/                    # OpenAPI specification processing tools
-│   ├── Makefile           # Build pipeline for API spec
-│   ├── filter-by-path.js  # Filter relevant API endpoints
-│   ├── fix-oas.js         # Fix and enhance OpenAPI spec
-│   ├── redocly.yaml       # Redocly configuration
-│   ├── oas.json           # Source OpenAPI specification
-│   └── README.md          # API tools documentation
-├── logo/                   # Maximo logos
-└── README.md              # This file
+│   ├── filter-by-path.js   # Filter relevant API endpoints
+│   ├── fix-oas.js          # Fix and enhance OpenAPI spec
+│   ├── Makefile            # Build pipeline for API spec
+│   ├── redocly.yaml        # Redocly configuration
+│   └── api/                # OpenAPI specification
+│       ├── oas.json        # Source
+│       ├── oas.small.json  # filtered and fixed version
+│       ├── oas.small.yaml  # yaml of above
+│       └── oas.yaml        # yaml of source
+├── src/                    # code
+│   └── service_now_business_rule.js # servicenow
+└── README.md               # This file
 ```
 
 ## Pattern: webMethods Calling Maximo REST APIs
@@ -78,7 +81,7 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 
 ### Processing Maximo OpenAPI Specification
 
-The maximo instance main URL has the format:
+The Maximo instance main URL has the format:
 
 ```text
 https://<sub_domain>.<mas_domain>/
