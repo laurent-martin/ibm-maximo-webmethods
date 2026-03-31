@@ -20,14 +20,17 @@ for (const [path, item] of Object.entries(data.paths || {})) {
     if (info && typeof info === 'object' && !info.operationId) {
       if (typeof info.summary == 'string' && info.summary.includes(' ') && !info.summary.includes('Object Structure name.')) {
         info.operationId = info.summary
-          .replace(' a ', '')
+          .replace(' a ', ' ')
+          .replace(' new ', ' ')
           .replace(/ (for|with) id { ?id ?}/, '')
           .replace('(paged)', 'Paged')
-          .replace(' collection of ', '')
+          .replace(' collection of ', ' ')
           .replace(' for App.', 'App')
           .replace(' fo ID.', '')
+          .replace('MXAPI', '')
           .replaceAll('.', '')
-          .replaceAll(' ', '');
+          .replaceAll(' ', '')
+          .replace('GetPaged', 'List');
         if (info.operationId.includes('FetchUIText') && path.startsWith('/ba'))
           info.operationId = info.operationId + 'BA'
         if (info.operationId == 'AutomationScriptname')
