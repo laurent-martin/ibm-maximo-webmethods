@@ -1,5 +1,7 @@
 # IBM Maximo - webMethods Integration
 
+<!-- markdownlint-disable MD033 -->
+
 <!--
 PANDOC_DEFAULTS_BEGIN
 metadata:
@@ -20,11 +22,11 @@ This repository provides tools, patterns and documentation for integrating IBM M
 
 ## Overview
 
-This integration enables bidirectional communication between Maximo and webMethods, supporting two key integration patterns:
+This integration enables bidirectional communication between Maximo and webMethods, supporting key integration patterns.
 
 ### webMethods Calling Maximo REST APIs
 
-![Overview of workflow](images/global-view.png)
+<img src="images/global-view.png" alt="Overview of workflow" width="600" />
 
 webMethods workflows can invoke Maximo REST APIs to:
 
@@ -127,7 +129,7 @@ Import the processed OpenAPI specification into webMethods to:
 - Build workflows that interact with Maximo
 - Leverage Maximo's REST API capabilities
 
-## Pattern: Maximo Triggering webMethods Workflows
+## Pattern: Maximo Triggering a webMethods Workflow
 
 Configure Maximo to trigger webMethods workflows:
 
@@ -135,22 +137,35 @@ Configure Maximo to trigger webMethods workflows:
 - Configure webhooks or message queues
 - Implement event handlers in webMethods to process Maximo events
 
-## ServiceNow
+## Pattern: ServiceNow resuming a webMethods Workflow
+
+- In **webMethods** Integration
+- In your workflow, insert a utility connector: `Wait for Callback` in section `Suspend and Resume Workflow`
+
+  <img src="images/webMethods-connector-resume-add.png" alt="Resume connector in palette" width="200" />
+
+  In the configuration form: Copy the Webhook URL:
+  
+  `https://<your-iwhi-instance>/runflow/resume/<step id>/(execution_id)`
+
+  <img src="images/webMethods-connector-resume-config.png" alt="Resume connector configuration" width="400" />
+
+- In **ServiceNow**
 
 - Go to: `All > System Web Services > Outbound > REST Message`
 
 - Create a REST Message (Endpoint):
 
-  ![Create Business Rule](images/servicenow-business-create-rest-endpoint.png)
+  <img src="images/servicenow-business-create-rest-endpoint.png" alt="Create REST Endpoint" width="500" />
 
   - Name: `Call IWHI`
-  - Endpoint: `https://<your-iwhi-instance>/runflow/resume/a10/${execution_id}`
+  - Endpoint: Paste as: `https://<your-iwhi-instance>/runflow/resume/<step id>/${execution_id}`
   - HTTP Request: add Header:
-    - `X-INSTANCE-API-KEY`: `<your iwhi API key>`
+    - `X-INSTANCE-API-KEY`: `<your IWHI API key>`
 
 - Create a HTTP Method (Message): in the same window:
 
-  ![Create Business Rule](images/servicenow-business-create-rest-message.png)
+  <img src="images/servicenow-business-create-rest-message.png" alt="Create REST Message" width="500" />
 
   - Name: `postWebHook`
   - HTTP Method: `POST`
@@ -175,7 +190,8 @@ Configure Maximo to trigger webMethods workflows:
 
 - Create a business Rule:
 
-  ![Create Business Rule](images/servicenow-business-create-rule.png)
+  <img src="images/servicenow-business-create-rule.png" alt="Create Business Rule" width="600" />
+
   - Name: `IWHI Change`
   - **Table**: `Incident`
   - **Active**: `Yes`
