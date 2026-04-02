@@ -30,8 +30,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Proxy route
-app.post('/api/proxy', async (req: Request<{}, {}, WorkOrderPayload>, res: Response) => {
+// Create service request route
+app.post('/api/create_request', async (req: Request<{}, {}, WorkOrderPayload>, res: Response) => {
     try {
         const response = await axios.post(
             config.ibm.url,

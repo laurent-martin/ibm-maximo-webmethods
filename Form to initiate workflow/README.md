@@ -55,7 +55,7 @@ After `clobber`, you need to run `npm install` again.
 ## Access
 
 - **Web interface**: <http://localhost:3000/index.html>
-- **Proxy API**: <http://localhost:3000/api/proxy>
+- **Create Request API**: <http://localhost:3000/api/create_request>
 - **Config API**: <http://localhost:3000/api/config>
 
 ## Architecture
