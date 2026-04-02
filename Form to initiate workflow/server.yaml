@@ -1,0 +1,8 @@
+# Configuration du serveur IBM Maximo - webMethods Integration
+
+server:
+  port: 3000
+  
+ibm:
+  url: https://dev5312404.a-fra-c1.int.ipaas.automation.ibm.com/runflow/run/sync/v2/24KDxyQ2P6
+  timeout: 30000  # Timeout en millisecondes (30 secondes)

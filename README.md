@@ -247,6 +247,35 @@ podman machine init --cpus 4 --memory 4096 --disk-size 50
 podman machine start
 ```
 
+## Annex: Creation of on-prem database
+
+Create a volume to have some persistency of the database:
+
+```bash
+podman volume create mysql-data
+```
+
+set database password in secrets.yml and set variable:
+
+```shell
+DB_PASSWORD=$(yq '.database.password' secrets.yaml)
+```
+
+The on-prem database runs in a container and is started like this:
+
+```bash
+podman run --detach --publish 3306:3306 --name=mysql --hostname=mysql-svc -e MYSQL_ROOT_PASSWORD=$DB_PASSWORD --volume mysql-data:/var/lib/mysql mysql:latest
+```
+
+> [!NOTE]
+> `mysql-svc` is a hostname visible by other containers, such as the Micro Service Runtime.
+
+Create the database and table:
+
+```bash
+podman exec -i mysql mysql -u root -p$DB_PASSWORD < src/database_init.sql
+```
+
 ## Annex: Available Maximo Objects in IBM App Connect
 
 The following Maximo objects are available for integration in IBM App Connect:
