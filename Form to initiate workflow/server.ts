@@ -28,7 +28,7 @@ interface WorkOrderPayload {
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(join(__dirname, 'public')));
 
 // Create service request route
 app.post('/api/create_request', async (req: Request<{}, {}, WorkOrderPayload>, res: Response) => {

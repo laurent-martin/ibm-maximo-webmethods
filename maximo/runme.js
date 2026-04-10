@@ -20,11 +20,14 @@ const rm_f = (file) => {
 
 const fix_maximo_api = (file) => {
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  // 1. Remove trailing slash from server URLs
+  // 1. Normalize server URLs
   if (data.servers) {
     data.servers.forEach(s => {
       s.url = s.url.replace(/\/$/, '');
     });
+    if (data.servers[0]?.url) {
+      data.servers[0].url = data.servers[0].url.replace(/\/oslc$/, '/api');
+    }
   }
   // 2. Add operationId where missing
   for (const [path, item] of Object.entries(data.paths || {})) {

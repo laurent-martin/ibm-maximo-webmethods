@@ -233,6 +233,14 @@ For issues related to:
 - **webMethods**: Consult IBM webMethods documentation or support
 - **This repository**: Open an issue on GitHub
 
+## Annex: Creation of Maximo connector
+
+Go to your project, then Connectors, then REST, then
+
+- URL: `https://mas-ui.manage.mas.apps.699b61e4b4668359d903183a.eu1.techzone.ibm.com/maximo/api`
+- Authorization type: none
+- Hostname verifier: `org.apache.http.conn.ssl.NoopHostnameVerifier`
+
 ## Annex: Demo environment "self-managed" on macOS
 
 For the self-managed part, we deploy containers on macOS.
@@ -306,3 +314,59 @@ Replace or create service request
 Replace service request
 Work orders (mxapiwo)
 ```
+
+Fields in Maximo Create SR:
+
+| Field                         | Value                        |
+|-------------------------------|------------------------------|
+| `lean`                        | `1`                          |
+| `Content-Type`                | `application/json`           |
+| `properties`                  | `ticketuid,ticketid,reportedby,assetnum,reportedphone,reportedemail,location,affectedpersonid,reportdate,description` |
+| `apikey`                      | `{{$project.params.apiKey}}` |
+| `Accept`                      | `application/json`           |
+| `description_longdescription` | `Request : {{$request.body.description}} FROM webSite application AT : {{$transform.t2.value}} BY:{{$request.body.reportedby}} FOR THE ASSET: {{$request.body.assetnum}}` |
+| `siteid`                      | `{{$request.body.SITEID}}`   |
+| `affectedperson`              | `{{$request.body.affectedpersonid}}` |
+| `description`                 | `{{$request.body.description}}` |
+| `urgency`                     | `2`                          |
+| `location`                    | `{{$request.body.location}}` |
+| `status`                      | `{{$request.body.status}}`   |
+| `reportedby`                  | `{{$request.body.reportedby}}` |
+| `assetnum`                    | `{{$request.body.assetnum}}` |
+| `reportedemail`               | `{{$a5.Contact[0].Email}}`   |
+| `reportedphone`               | `{{$a5.Contact[0].Phone}}`   |
+
+Fields in Maximo Update SR:
+
+| Field                         | Value                        |
+|-------------------------------|------------------------------|
+| `lean`                        | `1`                          |
+| `id`                          | `{{$transform.t3.stringifiedObject}}` |
+| `Content-Type`                | `application/json`           |
+| `Accept`                      | `application/json`           |
+| `apikey`                      | `{{$project.params.apiKey}}` |
+| `x-method-override`           | `PATCH`                      |
+| `description_longdescription` | `Request : {{$request.body.description}} FROM webSite application AT : {{$transform.t2.value}} BY:{{$request.body.reportedby}} FOR THE ASSET: {{$request.body.assetnum}} CLOSED BY SERVICENOW` |
+
+order_id {{$a30.CreateSROutput.responseBody.post200CreateSRResponse.ticketid}}
+
+first_name {{$a5.Contact[0].FirstName}}
+
+last_name {{$a5.Contact[0].LastName}}
+
+customer {{$a5.Contact[0].Department}}
+
+product_name Mechanical Keyboard
+
+product_code {{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.assetnum}}
+
+delivery_date {{$transform.t1.value}}
+
+quantity 1
+
+email_opt_in {{$a5.Contact[0].Email}}
+
+comment {{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.description}}
+
+end to end monitoring
+MCP
