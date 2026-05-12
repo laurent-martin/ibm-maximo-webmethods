@@ -6,21 +6,19 @@
 // @param current  modified value
 // @param previous value before modification (null when async)
 (function executeRule(current, previous) {
+    // Get REST Message created earlier in ServiceNow
     var r = new sn_ws.RESTMessageV2('Call IWHI', 'postWebhook');
-    // Set variable values in REST Message with values from current item (incident)
-    r.setStringParameterNoEscape('number', current.number);
-    r.setStringParameterNoEscape('short_description', current.short_description);
-    r.setStringParameterNoEscape('correlation_id', current.correlation_id);
-    r.setStringParameterNoEscape('execution_id', current.correlation_id);
+    // Set variable in REST Message with values from current item (incident)
+    r.setStringParameterNoEscape('resume_callback', current.correlation_display);
     // Convert current record to JSON
-    var obj = {};
+    var body = {};
     var fields = current.getFields();
     for (var i = 0; i < fields.size(); i++) {
         var field = fields.get(i);
-        obj[field.getName()] = current.getValue(field.getName());
+        body[field.getName()] = current.getValue(field.getName());
     }
     // Set as request body
-    r.setRequestBody(JSON.stringify(obj));
+    r.setRequestBody(JSON.stringify(body));
     try {
         var response = r.execute();
         var responseBody = response.getBody();

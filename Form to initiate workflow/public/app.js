@@ -1,6 +1,6 @@
 const CREATE_ENDPOINT = "/api/create_request";
 
-// Load endpoint configuration
+// Load endpoint configuration for display
 (async () => {
     try {
         const res = await fetch('/api/config');
@@ -13,6 +13,7 @@ const CREATE_ENDPOINT = "/api/create_request";
 
 document.getElementById('woForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    clearResponse();
 
     const btn = document.getElementById('submitBtn');
     const label = document.getElementById('btnLabel');
@@ -48,6 +49,7 @@ document.getElementById('woForm').addEventListener('submit', async (e) => {
 
 // Reset button
 document.getElementById('resetBtn').addEventListener('click', () => {
+    clearResponse();
     document.getElementById('description').value = 'problème de clavier';
     document.getElementById('assetnum').value = '7507';
     document.getElementById('location').value = 'REPAIR';
@@ -56,6 +58,10 @@ document.getElementById('resetBtn').addEventListener('click', () => {
     document.getElementById('status').value = 'NEW';
     document.getElementById('siteid').value = 'BEDFORD';
 });
+
+function clearResponse() {
+    document.getElementById('responseBody').innerHTML = '';
+}
 
 function showResponse(htmlContent) {
     const panel = document.getElementById('responsePanel');
@@ -96,5 +102,3 @@ function showToast(type, msg) {
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 4500);
 }
-
-// Made with Bob

@@ -5,15 +5,15 @@ import { readFileSync } from 'fs';
 import { load } from 'js-yaml';
 import { join } from 'path';
 
-// Configuration
+// Configuration file
 interface Config {
-    server: { port: number };
-    ibm: { url: string; timeout: number };
+    local: { port: number };
+    webMethods: { url: string; timeout: number };
 }
 
 const config = load(readFileSync(join(__dirname, 'server.yaml'), 'utf8')) as Config;
 
-// Types
+// Data received from form
 interface WorkOrderPayload {
     description: string;
     assetnum: string;
@@ -24,7 +24,7 @@ interface WorkOrderPayload {
     SITEID: string;
 }
 
-// App
+// Init web server
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -34,11 +34,11 @@ app.use(express.static(join(__dirname, 'public')));
 app.post('/api/create_request', async (req: Request<{}, {}, WorkOrderPayload>, res: Response) => {
     try {
         const response = await axios.post(
-            config.ibm.url,
+            config.webMethods.url,
             req.body,
             {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: config.ibm.timeout,
+                timeout: config.webMethods.timeout,
             }
         );
 
@@ -53,13 +53,13 @@ app.post('/api/create_request', async (req: Request<{}, {}, WorkOrderPayload>, r
     }
 });
 
-// Config endpoint
+// Get config route
 app.get('/api/config', (req: Request, res: Response) => {
-    res.json({ endpoint: config.ibm.url });
+    res.json({ endpoint: config.webMethods.url });
 });
 
 // Start
-app.listen(config.server.port, () => {
-    console.log(`\n✅ http://localhost:${config.server.port}`);
-    console.log(`   → ${config.ibm.url}\n`);
+app.listen(config.local.port, () => {
+    console.log(`webMethods: ${config.webMethods.url}\n`);
+    console.log(`\n✅ Open web browser on: http://localhost:${config.local.port}`);
 });

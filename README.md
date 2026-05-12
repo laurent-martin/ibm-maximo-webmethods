@@ -20,6 +20,36 @@ PANDOC_DEFAULTS_END
 
 This repository provides tools, patterns and documentation for integrating IBM Maximo with enterprise applications using IBM webMethods Hybrid Integration Platform (IWHI).
 
+## Demo Scenario
+
+### Configuration
+
+- Open the main workflow on webMethods Integration.
+- Open the Settings of the first connector (webHook), either by double click, or selecting the cogwheel icon.
+
+<img src="images/webMethods-webhook.png" alt="webHook URL" width="200" />
+
+- Copy the URL displayed in the webHook settings.
+- Paste in the configuration file: `form/server.yaml` for key `webMethods.url`
+
+### Execution Environment Setup
+
+- Start the Form server.
+
+In separate web browser windows:
+
+- Connect to the form. (URL Displayed by script)
+
+<img src="images/form.png" alt="Service Request Custom Form" width="200" />
+
+- Open the workflow with tracing enabled.
+
+<img src="images/global-view.png" alt="Workflow with Tracing" width="600" />
+
+- Log into ServiceNow.
+
+- Log into Maximo.
+
 ## Overview
 
 This integration enables bidirectional communication between Maximo and webMethods, supporting key integration patterns.
@@ -119,7 +149,7 @@ This will:
 
 - Filter relevant API endpoints (`mxapisr`, `mxapiasset`)
 - Bundle and optimize the specification
-- Fix common issues (operationIds, enum types, server URLs)
+- Fix common issues (`operationIds`, enum types, server URLs)
 - Validate the output
 - Generate a clean OpenAPI spec ready for webMethods import
 
@@ -129,15 +159,59 @@ Import the processed OpenAPI specification into webMethods to:
 - Build workflows that interact with Maximo
 - Leverage Maximo's REST API capabilities
 
-## Pattern: Maximo Triggering a webMethods Workflow
+## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 
-Configure Maximo to trigger webMethods workflows:
+### Preparation in ServiceNow
 
-- Set up Maximo automation scripts or object structures
-- Configure webhooks or message queues
-- Implement event handlers in webMethods to process Maximo events
+- In **ServiceNow**
 
-## Pattern: ServiceNow resuming a webMethods Workflow
+- Go to: `All > System Web Services > Outbound > REST Message`
+
+- Create a REST Message (Endpoint):
+
+  <img src="images/servicenow-business-create-rest-endpoint.png" alt="Create REST Endpoint" width="500" />
+
+  - Name: `Call IWHI`
+  - Endpoint: Paste as: `${resume_callback}`
+  - HTTP Request: add Header:
+    - `X-INSTANCE-API-KEY`: `<your IWHI API key>`
+  - Submit
+
+- Open the newly created REST Message:
+
+  <img src="images/servicenow-business-create-rest-message.png" alt="Create REST Message" width="500" />
+
+  - Delete the `GET` method (unused, open and click *Delete*)
+  - Create a new Method:
+  - Name: `postWebHook`
+  - HTTP Method: `POST`
+  - HTTP Request: Headers:
+    - `Content-Type`: `application/json`
+  - Leave the others empty.
+  - Submit
+
+- Go to: `All > System Definitions > Business Rules`
+
+- Create a business Rule:
+
+  <img src="images/servicenow-business-create-rule.png" alt="Create Business Rule" width="600" />
+
+  - Name: `IWHI on Incident Change`
+  - **Table**: `Incident`
+  - **Active**: `Yes`
+  - **Advanced**: `Yes`
+  - **When to Run**
+    - **When**: `after`
+    - **Update**: `Yes`
+  - **Advanced**:
+    - Turn on ES12 mode: `Yes`
+    - Script: [JavaScript](src/service_now_business_rule.js)
+
+> [!NOTE]
+> The field: `current.correlation_display` is populated at incident creation time by IWHI Integration with the full URL to the callback on IWHI.
+> `correlation_id` can be used to store the Maximo SR ID.
+
+### Resume Workflow in webMethods
 
 - In **webMethods** Integration
 - In your workflow, insert a utility connector: `Wait for Callback` in section `Suspend and Resume Workflow`
@@ -150,65 +224,9 @@ Configure Maximo to trigger webMethods workflows:
 
   <img src="images/webMethods-connector-resume-config.png" alt="Resume connector configuration" width="400" />
 
-- In **ServiceNow**
-
-- Go to: `All > System Web Services > Outbound > REST Message`
-
-- Create a REST Message (Endpoint):
-
-  <img src="images/servicenow-business-create-rest-endpoint.png" alt="Create REST Endpoint" width="500" />
-
-  - Name: `Call IWHI`
-  - Endpoint: Paste as: `https://<your-iwhi-instance>/runflow/resume/<step id>/${execution_id}`
-  - HTTP Request: add Header:
-    - `X-INSTANCE-API-KEY`: `<your IWHI API key>`
-
-- Create a HTTP Method (Message): in the same window:
-
-  <img src="images/servicenow-business-create-rest-message.png" alt="Create REST Message" width="500" />
-
-  - Name: `postWebHook`
-  - HTTP Method: `POST`
-  - HTTP Request
-    - Headers:
-      - `Content-Type`: `application/json`
-    - Content:
-
-      ```json
-      {
-      "event": "incident.updated",
-      "number": "${number}",
-      "short_description": "${short_description}",
-      "correlation_id": "${correlation_id}"
-      }
-      ```
-
-> [!NOTE]
-> The variables: `execution_id`, `number`, `short_description` and `correlation_id` will be replaced with actual values in the script in the business rule.
-
-- Go to: `All > System Definitions > Business Rules`
-
-- Create a business Rule:
-
-  <img src="images/servicenow-business-create-rule.png" alt="Create Business Rule" width="600" />
-
-  - Name: `IWHI Change`
-  - **Table**: `Incident`
-  - **Active**: `Yes`
-  - **Advanced**: `Yes`
-  - **When to Run**
-    - **When**: `after`
-    - **Update**: `Yes`
-  - **Advanced**:
-    - Turn on ES12 mode: `Yes`
-    - Script: [javascript](src/service_now_business_rule.js)
-
-> [!NOTE]
-> The field: `current.correlation_id` is populated at incident creation time by IWHI Integration.
-
 ## Micro Service Runtime (MSR)
 
-The workflow simulates an on-prem service by using an Integration MSR accessing a database.
+The workflow simulates an on-premise service by using an Integration MSR accessing a database.
 
 ## About
 
@@ -255,7 +273,7 @@ podman machine init --cpus 4 --memory 4096 --disk-size 50
 podman machine start
 ```
 
-## Annex: Creation of on-prem database
+## Annex: Creation of on-premise database
 
 Create a volume to have some persistency of the database:
 
@@ -269,7 +287,7 @@ set database password in secrets.yml and set variable:
 DB_PASSWORD=$(yq '.database.password' secrets.yaml)
 ```
 
-The on-prem database runs in a container and is started like this:
+The on-premise database runs in a container and is started like this:
 
 ```bash
 podman run --detach --publish 3306:3306 --name=mysql --hostname=mysql-svc -e MYSQL_ROOT_PASSWORD=$DB_PASSWORD --volume mysql-data:/var/lib/mysql mysql:latest

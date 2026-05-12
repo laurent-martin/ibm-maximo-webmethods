@@ -27,5 +27,3 @@ CREATE TABLE `orders` (
 
 -- Display table structure
 DESCRIBE orders;
-
--- Made with Bob

@@ -100,18 +100,6 @@ body {
     margin-top: 2px;
 }
 
-.badge {
-    margin-left: auto;
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    background: rgba(66, 190, 101, 0.12);
-    color: var(--accent2);
-    border: 1px solid rgba(66, 190, 101, 0.3);
-    padding: 3px 8px;
-    border-radius: 2px;
-    letter-spacing: 0.06em;
-}
-
 form {
     padding: 2rem;
     display: flex;
@@ -388,27 +376,6 @@ select option {
     letter-spacing: 0.08em;
 }
 
-.status-pill {
-    font-family: var(--mono);
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 2px;
-    letter-spacing: 0.06em;
-}
-
-.status-pill.ok {
-    background: rgba(66, 190, 101, 0.15);
-    color: var(--accent2);
-    border: 1px solid rgba(66, 190, 101, 0.3);
-}
-
-.status-pill.error {
-    background: rgba(255, 100, 80, 0.12);
-    color: #ff6450;
-    border: 1px solid rgba(255, 100, 80, 0.3);
-}
-
 .response-body {
     background: var(--bg);
     padding: 1rem;
@@ -455,5 +422,3 @@ select option {
 .json-null {
     color: var(--muted);
 }
-
-/* Made with Bob */
