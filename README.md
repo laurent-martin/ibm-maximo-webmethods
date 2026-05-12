@@ -196,7 +196,57 @@ Import the processed OpenAPI specification into webMethods to:
 
 - **Finish**
 
+### Saving the Maximo API Key for re-use
+
+Maximo's credentials are using an API Key.
+
+So, one way to externalize that secret is to create a workflow parameter:
+
+- In the project navigate to: **Configurations**
+
+- Then: **Workflow** &rarr; **Parameter**
+
+- Click **New Parameter**
+
+- **Name**: `MAXIMO_API_KEY`
+
+- **Value**: `<your Maximo API Key>`
+
+- Enable: **Set as password field**
+
+- **Create**
+
 ### Using the connector in a workflow
+
+- Create a new workflow.
+
+- Search for `Maximo`
+
+- Select and add the `Maximo` connector
+
+- Double click on it to configure it.
+
+- Select an action, for example: `CreateSR`
+
+- For **Connect to Maximo**, click on `+` to create a configuration.
+
+  - **Authorization Type**: `none`
+
+  - **Hostname verifier**: `org.apache.http.conn.ssl.NoopHostnameVerifier` (To avoid SSL errors)
+
+  - Leave the other parameters to the default values.
+
+  - **Save**
+
+- **Next**
+
+- Fill the following parameters:
+
+  - `lean`: `1`
+
+  - `apikey`: **Parameters** &rarr; `MAXIMO_API_KEY`
+
+  - `properties` ... follow the API of Maximo...
 
 ## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 
