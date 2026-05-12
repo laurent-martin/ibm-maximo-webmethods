@@ -127,6 +127,10 @@ https://<sub_domain>.<mas_domain>/
 
 ### Processing Maximo OpenAPI Specification
 
+> [!NOTE]
+> This repo contains the already processed Maximo OpenAPI specification.
+> So, no need to process it again, unless you need a different version.
+
 1. Get the OpenAPI specification for Maximo Manage from your Maximo instance:
 
    ```text
@@ -158,6 +162,41 @@ Import the processed OpenAPI specification into webMethods to:
 - Auto-generate service connectors
 - Build workflows that interact with Maximo
 - Leverage Maximo's REST API capabilities
+
+### Creation of the Connector in webMethods
+
+- Open your webMethods Integration interface, and navigate to a project.
+
+- Navigate to **Connectors** &rarr; **REST**
+
+- Click **Add Connector**
+
+  - Select **Import from URL**
+
+  - Use this URL:
+
+  ```text
+  https://raw.githubusercontent.com/laurent-martin/ibm-maximo-webmethods/refs/heads/main/maximo/api/oas.small.json
+  ```
+
+  - **API Type**: Open API (v3)
+
+  - **Next**
+
+> [!NOTE]
+> If you have cloned this repo, or recompiled the openapi spec, you can use **Import from local file** and use `oas.small.json`.
+
+- **Name**: `Maximo`
+
+- **Update icon**: Use the file: [logo/maximo_logo_128_round.png](logo/maximo_logo_128_round.png)
+
+- **Authentication type**: `Credentials`
+
+- **Next**
+
+- **Finish**
+
+### Using the connector in a workflow
 
 ## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 
