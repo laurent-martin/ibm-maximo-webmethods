@@ -257,6 +257,8 @@ This method is synchronous and assumes that the endpoint is always reachable.
 
 Instead of handling HTTP headers, SSL connections, and payloads manually inside a raw script, configure an Endpoint to let Maximo manage the connection.
 
+![End Point creation](images/maximo-endpoint.png)
+
 1. Navigate in MAS Manage to the application: **Integration** &rarr; **End Points**.
 
 2. Create a new End Point (e.g., `EXT_WM_API_SR`).
@@ -269,9 +271,11 @@ Instead of handling HTTP headers, SSL connections, and payloads manually inside 
 
    - **HTTPMETHOD**: `POST`
 
-   - **HEADERS**: `Content-Type: application/json` (add any required authorization tokens here, like `Authorization: Bearer <token>`, separated by comma.).
+   - **HEADERS**: `Content-Type: application/json` (add any required authorization tokens here, like `Authorization: Bearer <token>`, separated by comma `,`.).
 
 5. Save the End Point.
+
+You can now test the endpoint.
 
 #### Create the Automation Script
 
@@ -279,6 +283,8 @@ Next, you will create an automation script that executes immediately when a Serv
 [Video](https://www.youtube.com/watch?v=DlvICabjj64&list=PLrEKIhO45tr9z9XnNrRQWM3GfrCneRjeF&t=235s).
 [Documentation](https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=developing-automation-scripts).
 [GitHub Doc](https://ibm-maximo-dev.github.io/maximo-autoscript-documentation/).
+
+![Script](images/maximo-script.png)
 
 1. Navigate in MAS Manage to the application: **Automation Scripts**.
 
@@ -297,12 +303,24 @@ Next, you will create an automation script that executes immediately when a Serv
 
    - **Script**: `WM_CALL_WF_SR`
    - **Script language**: `jython`
-   - **Next** or import the file `src/WM_CALL_WF_SR.py`
+   - **Next** or import the file [`src/WM_CALL_WF_SR.py`](src/WM_CALL_WF_SR.py)
 
 5. Step 3: Script code
 
-   - Copy/Paste the code from `src/WM_CALL_WF_SR.py` if not already imported.
+   - Copy/Paste the code from [`src/WM_CALL_WF_SR.py`](src/WM_CALL_WF_SR.py) if not already imported.
    - **Create**
+
+6. Add a variable with the name of the endpoint created earlier.
+
+   - **Name**: `ENDPOINT_NAME`
+   - **Variable Type**: `IN`
+   - **Binding Type**: `LITERAL`
+   - **Literal Data Type**: `ALN`
+   - **Binding Value**: `EXT_WM_API_SR`
+
+![Variable](images/maximo-variable.png)
+
+You can now test the script and check the log.
 
 ## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 

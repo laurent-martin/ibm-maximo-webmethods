@@ -1,6 +1,6 @@
 # `mbo`: Maximo Business Object, here it is the service request object
-# `ENDPOINT_NAME`: Define as script variable
 # `service` : See https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=concepts-service-object
+# `ENDPOINT_NAME`: Define as script variable
 from com.ibm.json.java import JSONObject
 from java.util import HashMap
 from java.lang import Throwable
