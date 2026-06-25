@@ -1,7 +1,5 @@
 # IBM Maximo - webMethods Integration
 
-<!-- markdownlint-disable MD033 -->
-
 <!--
 PANDOC_DEFAULTS_BEGIN
 metadata:
@@ -9,6 +7,8 @@ metadata:
   author: "Laurent Martin"
 PANDOC_DEFAULTS_END
 -->
+
+<!-- markdownlint-disable MD033 -->
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![IBM Maximo](https://img.shields.io/badge/IBM-Maximo-052FAD?logo=ibm)](https://www.ibm.com/products/maximo)
@@ -90,7 +90,7 @@ When objects are modified in Maximo (create, update, delete), Maximo can automat
 - IBM webMethods Hybrid Integration Platform access
 - Other enterprise applications, such as SAP, Oracle ERP, ServiceNow, Salesforce, etc.
 
-The Maximo instance main URL has the format ([Documentation]()):
+The Maximo instance main URL has the format ([Documentation](https://www.ibm.com/docs/en/masv-and-l/cd?topic=ons-maximo-application-suite-application-urls)):
 
 ```text
 https://<sub_domain>.<mas_domain>/
@@ -99,21 +99,47 @@ https://<sub_domain>.<mas_domain>/
 ### Repository Structure
 
 ```text
+├── form/                   # Custom service request form application
+│   ├── public/             # Frontend assets
+│   │   ├── app.js          # Client-side JavaScript
+│   │   ├── index.html      # HTML form
+│   │   └── styles.css      # Styling
+│   ├── server.ts           # Node.js/TypeScript server
+│   ├── server.yaml         # Server configuration
+│   ├── package.json        # Node.js dependencies
+│   ├── tsconfig.json       # TypeScript configuration
+│   └── README.md           # Form application documentation
+├── Hybrid MSR/             # Micro Service Runtime resources
+│   ├── mysql-connector-java-8.0.15.jar
+│   └── mysql-connector-java-8.0.15.zip
 ├── images/                 # Screen captures for documentation
-├── logo/                   # Logo for Maximo connector
+├── IWHI/                   # IBM webMethods Hybrid Integration exports
+│   ├── FlowService_MaximoOrders.zip
+│   └── WorkFlow_export-*.zip
+├── logo/                   # Maximo connector logos
+│   ├── maximo_logo.png
+│   ├── maximo_logo.svg
+│   ├── maximo_logo_128.png
+│   └── maximo_logo_128_round.png
 ├── maximo/                 # OpenAPI specification processing tools
 │   ├── filter-by-path.js   # Filter relevant API endpoints
-│   ├── fix-oas.js          # Fix and enhance OpenAPI spec
-│   ├── Makefile            # Build pipeline for API spec
 │   ├── redocly.yaml        # Redocly configuration
-│   └── api/                # OpenAPI specification
-│       ├── oas.json        # Source
-│       ├── oas.small.json  # filtered and fixed version
-│       ├── oas.small.yaml  # yaml of above
-│       └── oas.yaml        # yaml of source
-├── src/                    # code
-│   └── service_now_business_rule.js # servicenow
-└── README.md               # This file
+│   ├── runme.js            # Build script
+│   └── api/                # OpenAPI specifications
+│       ├── oas.json        # Source specification
+│       ├── oas.small.json  # Filtered and fixed version
+│       ├── oas.small.yaml  # YAML format (filtered)
+│       └── oas.yaml        # YAML format (source)
+├── src/                    # Source code and scripts
+│   ├── database_init.sql   # Database initialization script
+│   └── service_now_business_rule.js # ServiceNow business rule
+├── .gitignore              # Git ignore patterns
+├── LICENSE                 # Apache 2.0 license
+├── Makefile                # Build automation
+├── Public Assets for Maximo IWHI demo.pptx # Presentation
+├── README.md               # This file
+├── README.pdf              # PDF version of documentation
+└── secrets.yaml            # Configuration secrets (not in git)
 ```
 
 ## Pattern: webMethods Calling Maximo REST APIs
@@ -122,46 +148,12 @@ https://<sub_domain>.<mas_domain>/
 
 - IBM Maximo Application Suite (MAS) instance
 - IBM webMethods Hybrid Integration Platform access
-- Node.js (for API processing tools)
+- Node.js
+- `podman` or `docker`
+
+Optional:
+
 - Redocly CLI
-
-### Processing Maximo OpenAPI Specification
-
-> [!NOTE]
-> This repo contains the already processed Maximo OpenAPI specification.
-> So, no need to process it again, unless you need a different version.
-
-1. Get the OpenAPI specification for Maximo Manage from your Maximo instance:
-
-   ```text
-   https://mas.manage.<mas_domain>/maximo/api/oas
-   ```
-
-> [!TIP]
-> API documentation can be consulted at:
-> `https://mas.manage.<mas_domain>/maximo/oas3/api.html`
-
-1. Save it in the `api` directory as `oas.json` (or use the one already saved)
-
-2. Run the build process:
-
-   ```bash
-   make
-   ```
-
-This will:
-
-- Filter relevant API endpoints (`mxapisr`, `mxapiasset`)
-- Bundle and optimize the specification
-- Fix common issues (`operationIds`, enum types, server URLs)
-- Validate the output
-- Generate a clean OpenAPI spec ready for webMethods import
-
-Import the processed OpenAPI specification into webMethods to:
-
-- Auto-generate service connectors
-- Build workflows that interact with Maximo
-- Leverage Maximo's REST API capabilities
 
 ### Creation of the Connector in webMethods
 
@@ -248,6 +240,70 @@ So, one way to externalize that secret is to create a workflow parameter:
 
   - `properties` ... follow the API of Maximo...
 
+## Pattern: Maximo Triggering or Resuming a webMethods Workflow
+
+This pattern makes use of the Maximo Integration Framework (MIF) to trigger or resume a webMethods workflow.
+
+There are two ways to use this pattern:
+
+- MIF Endpoints combined with an Object Launch Point Automation Script.
+- Use a Publish Channel routed to the HTTP Endpoint
+
+### Using an Object Launch Point Automation Script
+
+This method is synchronous and assumes that the endpoint is always reachable.
+
+#### Configure the HTTP End Point
+
+Instead of handling HTTP headers, SSL connections, and payloads manually inside a raw script, configure an Endpoint to let Maximo manage the connection.
+
+1. Navigate in MAS Manage to the application: **Integration** &rarr; **End Points**.
+
+2. Create a new End Point (e.g., `EXT_WM_API_SR`).
+
+3. Set the Handler to `HTTP`. This displays associated properties.
+
+4. Configure the parameters:
+
+   - **URL**: Enter the target external API URL (e.g., <https://api.external-system.com/v1/tickets>).
+
+   - **HTTPMETHOD**: `POST`
+
+   - **HEADERS**: `Content-Type: application/json` (add any required authorization tokens here, like `Authorization: Bearer <token>`, separated by comma.).
+
+5. Save the End Point.
+
+#### Create the Automation Script
+
+Next, you will create an automation script that executes immediately when a Service Request is initialized or saved for the first time.
+[Video](https://www.youtube.com/watch?v=DlvICabjj64&list=PLrEKIhO45tr9z9XnNrRQWM3GfrCneRjeF&t=235s).
+[Documentation](https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=developing-automation-scripts).
+[GitHub Doc](https://ibm-maximo-dev.github.io/maximo-autoscript-documentation/).
+
+1. Navigate in MAS Manage to the application: **Automation Scripts**.
+
+2. Select: **Create** &rarr; **Script with Object Launch Point**.
+
+3. Step 1: Configure the launch point details:
+
+   - **Launch Point**: `SR_CREATED_API_CALL`
+   - **Object**: `SR`
+   - **Event**: **Save**
+   - **Save**: **Save** and **After Commit**
+   - **Script**: **New**
+   - **Next**
+
+4. Step 2: Configure the script
+
+   - **Script**: `WM_CALL_WF_SR`
+   - **Script language**: `jython`
+   - **Next** or import the file `src/WM_CALL_WF_SR.py`
+
+5. Step 3: Script code
+
+   - Copy/Paste the code from `src/WM_CALL_WF_SR.py` if not already imported.
+   - **Create**
+
 ## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 
 ### Preparation in ServiceNow
@@ -317,20 +373,10 @@ So, one way to externalize that secret is to create a workflow parameter:
 
 The workflow simulates an on-premise service by using an Integration MSR accessing a database.
 
-## About
-
-### License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-### Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
-
 ## Documentation
 
-- [Maximo REST API Documentation](https://www.ibm.com/docs/en/maximo-manage/continuous-delivery?topic=apis-maximo-rest-api)
-- [webMethods Integration Documentation](https://documentation.softwareag.com/)
+- [Maximo REST API Documentation](https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=reference-maximo-manage-rest-apis)
+- [webMethods Integration Documentation]()
 
 ### Support
 
@@ -340,7 +386,49 @@ For issues related to:
 - **webMethods**: Consult IBM webMethods documentation or support
 - **This repository**: Open an issue on GitHub
 
-## Annex: Creation of Maximo connector
+### Processing Maximo OpenAPI Specification
+
+> [!NOTE]
+> This repo contains the already processed Maximo OpenAPI specification.
+> So, no need to process it again, unless you need a different version.
+
+> [!TIP]
+> API documentation can be consulted at:
+> `https://mas.manage.<mas_domain>/maximo/oas3/api.html`
+
+The following procedure show how the processed OpenAPI specification can be obtained.
+
+1. Get the OpenAPI specification for Maximo Manage from your Maximo instance:
+
+   ```text
+   https://mas.manage.<mas_domain>/maximo/api/oas
+   ```
+
+1. Save it in directory `maximo/api` directory as `oas.json` (or use the one already saved)
+
+1. Run the build process:
+
+   ```bash
+   make
+   ```
+
+This will:
+
+- Filter relevant API endpoints (`mxapisr`, `mxapiasset`)
+- Bundle and optimize the specification
+- Fix common issues (`operationIds`, enum types, server URLs)
+- Validate the output
+- Generate a clean OpenAPI spec ready for webMethods import
+
+Import the processed OpenAPI specification into webMethods to:
+
+- Auto-generate service connectors
+- Build workflows that interact with Maximo
+- Leverage Maximo's REST API capabilities
+
+## Annex
+
+### Creation of Maximo connector
 
 Go to your project, then Connectors, then REST, then
 
@@ -348,7 +436,7 @@ Go to your project, then Connectors, then REST, then
 - Authorization type: none
 - Hostname verifier: `org.apache.http.conn.ssl.NoopHostnameVerifier`
 
-## Annex: Demo environment "self-managed" on macOS
+### Demo environment "self-managed" on macOS
 
 For the self-managed part, we deploy containers on macOS.
 The following setup is used:
@@ -362,7 +450,18 @@ podman machine init --cpus 4 --memory 4096 --disk-size 50
 podman machine start
 ```
 
-## Annex: Creation of on-premise database
+### Creation of on-premise database
+
+On macOS:
+
+```bash
+brew install podman yq
+```
+
+```bash
+podman machine init
+podman machine start
+```
 
 Create a volume to have some persistency of the database:
 
@@ -391,13 +490,24 @@ Create the database and table:
 podman exec -i mysql mysql -u root -p$DB_PASSWORD < src/database_init.sql
 ```
 
-## Annex: Available Maximo Objects in IBM App Connect
+### ServiceNow
+
+To get a ServiceNow free developer account and instance, go to: <https://developer.servicenow.com>.
+Then, click on Sign-in and then create an account.
+
+Once logged-in, you can create an instance.
+Go to **Manage my instance**.
+
+<img src="images/servicenow-manage.png" alt="Manage my instance" width="600" />
+
+To get into the instance, click on the **Instance URL** link `devxxxxxx.service-now.com`.
+
+### Available Maximo Objects in IBM App Connect
 
 The following Maximo objects are available for integration in IBM App Connect:
 
 ```text
 IBM Maximo Asset Management is an enterprise asset management solution that enterprises can use for asset management, procurement and materials management, service management, work management, and contract management.
-More info
 
 Assets (mxapiasset)
 Assets (mxasset)
@@ -422,7 +532,9 @@ Replace service request
 Work orders (mxapiwo)
 ```
 
-Fields in Maximo Create SR:
+### Creation of the workflow in IWHI
+
+- Fields in Maximo Create SR:
 
 | Field                         | Value                        |
 |-------------------------------|------------------------------|
@@ -443,7 +555,7 @@ Fields in Maximo Create SR:
 | `reportedemail`               | `{{$a5.Contact[0].Email}}`   |
 | `reportedphone`               | `{{$a5.Contact[0].Phone}}`   |
 
-Fields in Maximo Update SR:
+- Fields in Maximo Update SR:
 
 | Field                         | Value                        |
 |-------------------------------|------------------------------|
@@ -454,26 +566,19 @@ Fields in Maximo Update SR:
 | `apikey`                      | `{{$project.params.apiKey}}` |
 | `x-method-override`           | `PATCH`                      |
 | `description_longdescription` | `Request : {{$request.body.description}} FROM webSite application AT : {{$transform.t2.value}} BY:{{$request.body.reportedby}} FOR THE ASSET: {{$request.body.assetnum}} CLOSED BY SERVICENOW` |
+| `order_id`                    | `{{$a30.CreateSROutput.responseBody.post200CreateSRResponse.ticketid}}`|
+| `first_name`                  | `{{$a5.Contact[0].FirstName}}`|
+| `last_name`                   | `{{$a5.Contact[0].LastName}}` |
+| `customer`                    | `{{$a5.Contact[0].Department}}` |
+| `product_name`                | `Mechanical Keyboard` |
+| `product_code`                | `{{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.assetnum}}` |
+| `delivery_date`               | `{{$transform.t1.value}}` |
+| `quantity`                    | `1` |
+| `email_opt_in`                | `{{$a5.Contact[0].Email}}` |
+| `comment`                     | `{{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.description}}` |
 
-order_id {{$a30.CreateSROutput.responseBody.post200CreateSRResponse.ticketid}}
-
-first_name {{$a5.Contact[0].FirstName}}
-
-last_name {{$a5.Contact[0].LastName}}
-
-customer {{$a5.Contact[0].Department}}
-
-product_name Mechanical Keyboard
-
-product_code {{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.assetnum}}
-
-delivery_date {{$transform.t1.value}}
-
-quantity 1
-
-email_opt_in {{$a5.Contact[0].Email}}
-
-comment {{$a20.postosMxapisrOutput.responseBody.post200postosMxapisrResponse.description}}
+## TODO
 
 end to end monitoring
+
 MCP
