@@ -20,6 +20,8 @@ PANDOC_DEFAULTS_END
 
 This repository provides tools, patterns and documentation for integrating IBM Maximo with enterprise applications using IBM webMethods Hybrid Integration Platform (IWHI).
 
+Tested with MAS 9.1.6
+
 ## Demo Scenario
 
 ### Configuration
@@ -247,7 +249,9 @@ This pattern makes use of the Maximo Integration Framework (MIF) to trigger or r
 There are two ways to use this pattern:
 
 - MIF Endpoints combined with an Object Launch Point Automation Script.
-- Use a Publish Channel routed to the HTTP Endpoint
+- Use a Publish Channel
+  - routed to the HTTP Endpoint through JMS
+  - or using Kafka
 
 ### Using an Object Launch Point Automation Script
 
@@ -263,11 +267,12 @@ Instead of handling HTTP headers, SSL connections, and payloads manually inside 
 
 2. Create a new End Point (e.g., `EXT_WM_API_SR`).
 
-3. Set the Handler to `HTTP`. This displays associated properties.
+3. Set the Handler to `HTTP`.
+   Associated HTTP properties are shown.
 
 4. Configure the parameters:
 
-   - **URL**: Enter the target external API URL (e.g., <https://api.external-system.com/v1/tickets>).
+   - **URL**: Enter the target external API URL (e.g., The webMethods "start workflow" webhook).
 
    - **HTTPMETHOD**: `POST`
 
@@ -280,9 +285,10 @@ You can now test the endpoint.
 #### Create the Automation Script
 
 Next, you will create an automation script that executes immediately when a Service Request is initialized or saved for the first time.
-[Video](https://www.youtube.com/watch?v=DlvICabjj64&list=PLrEKIhO45tr9z9XnNrRQWM3GfrCneRjeF&t=235s).
-[Documentation](https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=developing-automation-scripts).
-[GitHub Doc](https://ibm-maximo-dev.github.io/maximo-autoscript-documentation/).
+
+- [Documentation](https://www.ibm.com/docs/en/masv-and-l/maximo-manage/cd?topic=developing-automation-scripts).
+- [GitHub Doc](https://ibm-maximo-dev.github.io/maximo-autoscript-documentation/).
+- [Video](https://www.youtube.com/watch?v=DlvICabjj64&list=PLrEKIhO45tr9z9XnNrRQWM3GfrCneRjeF&t=235s).
 
 ![Script](images/maximo-script.png)
 
@@ -311,6 +317,7 @@ Next, you will create an automation script that executes immediately when a Serv
    - **Create**
 
 6. Add a variable with the name of the endpoint created earlier.
+   (The variable could also be hard coded in the script.)
 
    - **Name**: `ENDPOINT_NAME`
    - **Variable Type**: `IN`
@@ -321,6 +328,119 @@ Next, you will create an automation script that executes immediately when a Serv
 ![Variable](images/maximo-variable.png)
 
 You can now test the script and check the log.
+
+Check that the script is Active.
+Now, when a Service Request is created, the workflow is started with the 3 parameters.
+
+### Using Publish Channel, JMS Queue and Automation script
+
+The advantage of this method over the previous one is that it is asynchronous.
+
+#### The Cron Task Engine (`JMSQSEQCONSUMER`)
+
+Because the payload is pushed into an internal sequential queue (`sqout`), Maximo relies on a background thread called a **Cron Task** to process it.
+
+- Default Polling Frequency: Out-of-the-box, the `cron` task instance `SEQQOUT` evaluates the queue every **30 seconds**.
+- How to change it:
+
+    1. Go to **System Configuration** &rarr; **Platform Configuration** &rarr; **Cron Task Setup**.
+    2. Search for `JMSQSEQCONSUMER`.
+    3. Locate the `SEQQOUT` row.
+    4. Edit the Schedule column (e.g., change 30s to 5s or 10s depending on project urgency vs performance constraints).
+    5. Check **Active**, save, and select **Action** &rarr; **Reload Request**.
+
+#### Create the HTTP End Point
+
+Same procedure as above, create: `EXT_WM_API_SR`
+
+#### Configure the Publish Channel
+
+This captures the Service Request data, enforces the JSON payload structure, and restricts transmission to new creations only.
+
+1. Navigate to **Integration** &rarr; **Publish Channels**.
+
+2. Click **&CirclePlus; New Publish Channel** and configure the fields:
+
+   - **Publish Channel**: `MXSR_ASYNC`
+   - **Description**: **Outbound Async SR Channel**
+   - **Adapter**: `MAXIMO`
+   - **Operation**: **Publish**
+   - **Object Structure**: `MXSR` (Click the arrow **$>$**, and then **Select Value**)
+
+3. On the right-hand panel, check the following configuration box:
+   - **Retain Mbo's**: &#9745; Checked (Default)
+   - **Publish JSON?**: &#9745; Checked (Forces Maximo to format the payload as JSON instead of XML).
+4. Click Save (&#128190; floppy disk icon).
+5. Go back to List View
+6. Check &#9745; **Select Records**, select `MXSR_ASYNC` and then click on **Enable Event Listener**.
+   Now, the **Enable Listener?** checkbox is selected.
+   This turns on the DB event trigger.
+
+#### Create filter script for creation only
+
+1. Head over to Automation Scripts:
+
+   - Open the Maximo Navigation menu on the left.
+
+   - Go to: **System Configuration** &rarr; **Platform Configuration** &rarr; **Automation Scripts**.
+
+1. Create a Script with an Integration Launch Point:
+
+   - In **More Actions**, open **Create** and click **Script for Integration**.
+
+   - Configure the wizard:
+
+     - Type of Integration: **Publish Channel**
+     - Publish Channel: `MXSR_ASYNC`.
+     - Type: **Event Filter**
+   - Script Details:
+     - Name: Keep the proposed name: `PUBLISH.MXSR_ASYNC.EVENTFILTER`
+     - Description: True only for creation.
+     - Language: `jython`
+     - Move to the script body on the bottom and paste:
+
+      ```python
+      # Check if the record being processed by the channel is a new creation
+      if not mbo.isNew():
+          # Stop the publish channel from queuing this record
+          evalresult = False
+      ```
+
+     - **Create**
+
+#### Create a dedicated external system
+
+- In the **External Systems** application, click the **New External System** icon (the plus sign) in the toolbar.
+
+- Configure the top section in **System** tab:
+
+  - **System**: `EXT_API_SYS` (or any name that fits your naming convention)
+
+  - **Description**: **Dedicated Container for Outbound REST APIs**
+
+  - **End Point**: `EXT_WM_API_SR`
+
+  - **Enabled?**: Check this box (this tells Maximo that this specific container is active).
+
+- Configure the Queues on the right side:
+
+  - **Outbound Sequential Queue**: Type or look up `jms/maximo/int/queues/sqout`
+
+  - You can leave the Continuous and Inbound queues blank since this system is only processing sequential outbound messages.
+
+  - **Save**
+
+- Move to the **Publish Channels** tab:
+
+  - Click **&CirclePlus;** (**New Row**).
+
+  - Select your channel: `MXSR_ASYNC`.
+
+  - Ensure the End Point on this row is set to your REST endpoint: `EXT_WM_API_SR`.
+
+  - Check the **Enabled?** box for this specific row.
+
+- &#128190; Save the record.
 
 ## Pattern: ServiceNow Triggering or Resuming a webMethods Workflow
 
